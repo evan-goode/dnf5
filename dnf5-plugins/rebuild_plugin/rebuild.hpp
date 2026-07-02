@@ -1,0 +1,133 @@
+// Copyright Contributors to the DNF5 project.
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
+#ifndef DNF5_PLUGINS_REBUILD_PLUGIN_REBUILD_HPP
+#define DNF5_PLUGINS_REBUILD_PLUGIN_REBUILD_HPP
+
+#include <dnf5/context.hpp>
+#include <json.h>
+#include <libdnf5/conf/option_bool.hpp>
+
+const std::string DEFAULT_REBUILD_CONFIG_DIRECTORY{"/etc/dnf/dnf5-plugins/rebuild.d"};
+const std::string DEFAULT_REBUILD_CACHEDIR{"/var/cache/dnf-rebuild"};
+const std::string DEFAULT_REBUILD_IMAGE_TAG{"localhost/dnf-rebuild:latest"};
+
+namespace dnf5 {
+
+std::unique_ptr<json_object, decltype(&json_object_put)> get_bootc_status();
+
+std::string get_base_image_id(const std::filesystem::path & conf_dir);
+std::string build_containerfile_if_exists(
+    const std::filesystem::path & conf_dir,
+    const std::string & from_image_id,
+    const std::filesystem::path & containerfile_path);
+
+/// Build a container image from the configuration.
+///
+/// Applies Containerfile.pre, resolves the infile, installs packages inside
+/// the container, applies Containerfile.post, and tags the final image.
+std::string build(Context & ctx, const std::filesystem::path & conf_dir, const std::string & tag);
+
+/// Query the registry for the latest digest of an image via skopeo.
+std::string get_latest_digest(const std::string & image);
+
+void bootc_switch(const std::string & tag, bool apply, bool soft_reboot);
+
+libdnf5::OptionString * create_tag_option(Command & command);
+
+libdnf5::OptionBool * create_apply_option(Command & command);
+
+libdnf5::OptionBool * create_soft_reboot_option(Command & command);
+
+libdnf5::OptionBool * create_switch_option(Command & command);
+
+class RebuildCommand : public Command {
+public:
+    explicit RebuildCommand(Context & context) : Command(context, "rebuild") {}
+    void set_parent_command() override;
+    void set_argument_parser() override;
+    void register_subcommands() override;
+    void pre_configure() override;
+};
+
+
+class RebuildSubcommand : public Command {
+public:
+    explicit RebuildSubcommand(Context & context, const std::string & name) : Command(context, name) {}
+    void set_argument_parser() override;
+
+protected:
+    /// @brief Validate that the configuration directory exists, is a directory, and is non-empty.
+    void validate_conf_dir();
+
+    libdnf5::OptionPath * config_directory_option{nullptr};
+};
+
+class RebuildInitCommand : public RebuildSubcommand {
+public:
+    explicit RebuildInitCommand(Context & context) : RebuildSubcommand(context, "init") {}
+    void set_argument_parser() override;
+    void configure() override;
+    void run() override;
+};
+
+class RebuildUpgradeCommand : public RebuildSubcommand {
+public:
+    explicit RebuildUpgradeCommand(Context & context) : RebuildSubcommand(context, "upgrade") {}
+    void set_argument_parser() override;
+    void pre_configure() override;
+    void configure() override;
+    void run() override;
+
+private:
+    libdnf5::OptionString * tag_option{nullptr};
+    libdnf5::OptionBool * switch_option{nullptr};
+    libdnf5::OptionBool * apply_option{nullptr};
+    libdnf5::OptionBool * soft_reboot_option{nullptr};
+};
+
+class RebuildRebaseCommand : public RebuildSubcommand {
+public:
+    explicit RebuildRebaseCommand(Context & context) : RebuildSubcommand(context, "rebase") {}
+    void set_argument_parser() override;
+    void pre_configure() override;
+    void configure() override;
+    void run() override;
+
+private:
+    std::string image_spec;
+    libdnf5::OptionString * tag_option{nullptr};
+    libdnf5::OptionBool * switch_option{nullptr};
+    libdnf5::OptionBool * apply_option{nullptr};
+    libdnf5::OptionBool * soft_reboot_option{nullptr};
+};
+
+class RebuildBuildCommand : public RebuildSubcommand {
+public:
+    explicit RebuildBuildCommand(Context & context) : RebuildSubcommand(context, "build") {}
+    void set_argument_parser() override;
+    void pre_configure() override;
+    void configure() override;
+    void run() override;
+
+private:
+    libdnf5::OptionString * tag_option{nullptr};
+};
+
+class RebuildSwitchCommand : public RebuildSubcommand {
+public:
+    explicit RebuildSwitchCommand(Context & context) : RebuildSubcommand(context, "switch") {}
+    void set_argument_parser() override;
+    void pre_configure() override;
+    void configure() override;
+    void run() override;
+
+private:
+    libdnf5::OptionString * tag_option{nullptr};
+    libdnf5::OptionBool * apply_option{nullptr};
+    libdnf5::OptionBool * soft_reboot_option{nullptr};
+};
+
+}  // namespace dnf5
+
+#endif  // DNF5_PLUGINS_REBUILD_PLUGIN_REBUILD_HPP

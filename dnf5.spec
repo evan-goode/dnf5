@@ -93,6 +93,7 @@ Provides:       dnf5-command(versionlock)
 %bcond_without plugin_expired_pgp_keys
 %bcond_without plugin_rhsm
 %bcond_without plugin_manifest
+%bcond_without plugin_rebuild
 %bcond_without python_plugins_loader
 
 %if 0%{?rhel} >= 10
@@ -1018,6 +1019,27 @@ DNF5 plugin for working with RPM package manifest files.
 %endif
 %endif  # %%{with plugin_manifest}
 
+# ========== dnf5-rebuild plugin ==========
+
+%if %{with plugin_rebuild}
+%package plugin-rebuild
+Summary:        DNF5 plugin for local package layering on bootc systems
+License:        LGPL-2.1-or-later
+Requires:       dnf5%{?_isa} = %{version}-%{release}
+Requires:       libdnf5%{?_isa} = %{version}-%{release}
+Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
+Requires:       podman
+Requires:       skopeo
+Requires:       bootc
+Provides:       dnf5-command(rebuild)
+
+%description plugin-rebuild
+DNF5 plugin for local package layering on bootc systems
+
+%files plugin-rebuild
+%{_libdir}/dnf5/plugins/rebuild_cmd_plugin.so
+%endif  # %%{with plugin_rebuild}
+
 %endif  # %%{with dnf5_plugins}
 
 
@@ -1045,6 +1067,7 @@ DNF5 plugin for working with RPM package manifest files.
     -DWITH_PLUGIN_LOCAL=%{?with_plugin_local:ON}%{!?with_plugin_local:OFF} \
     -DWITH_PLUGIN_RHSM=%{?with_plugin_rhsm:ON}%{!?with_plugin_rhsm:OFF} \
     -DWITH_PLUGIN_MANIFEST=%{?with_plugin_manifest:ON}%{!?with_plugin_manifest:OFF} \
+    -DWITH_PLUGIN_REBUILD=%{?with_plugin_rebuild:ON}%{!?with_plugin_rebuild:OFF} \
     -DWITH_PYTHON_PLUGINS_LOADER=%{?with_python_plugins_loader:ON}%{!?with_python_plugins_loader:OFF} \
     \
     -DWITH_ACL=%{?with_acl:ON}%{!?with_acl:OFF} \

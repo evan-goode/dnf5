@@ -139,6 +139,7 @@ void ManifestResolveCommand::populate_manifest(
     }
 
     // Populate manifest
+    manifest.get_packages().add_arch(arch);
     const auto & resolved_pkgs = resolve_goal(goal, *base, srpm_option->get_value());
     add_pkgs_to_manifest(manifest, *base, resolved_pkgs, arch, multiarch);
 }

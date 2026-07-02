@@ -37,7 +37,6 @@
 #include <libdnf5/rpm/package_set.hpp>
 #include <transaction/transaction_sr.hpp>
 
-#include <iterator>
 #include <vector>
 
 
