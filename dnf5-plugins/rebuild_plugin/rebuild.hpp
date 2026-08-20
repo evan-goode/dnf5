@@ -115,6 +115,16 @@ private:
     std::vector<std::string> pkg_specs;
 };
 
+class RebuildRemoveCommand : public RebuildSwitchableCommand {
+public:
+    explicit RebuildRemoveCommand(Context & context) : RebuildSwitchableCommand(context, "remove") {}
+    void set_argument_parser() override;
+    void run() override;
+
+private:
+    std::vector<std::string> pkg_specs;
+};
+
 class RebuildBuildCommand : public RebuildSubcommand {
 public:
     explicit RebuildBuildCommand(Context & context) : RebuildSubcommand(context, "build") {}

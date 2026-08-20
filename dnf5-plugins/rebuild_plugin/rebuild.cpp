@@ -135,6 +135,7 @@ void RebuildCommand::register_subcommands() {
     register_subcommand(std::make_unique<RebuildUpgradeCommand>(get_context()));
     register_subcommand(std::make_unique<RebuildRebaseCommand>(get_context()));
     register_subcommand(std::make_unique<RebuildInstallCommand>(get_context()));
+    register_subcommand(std::make_unique<RebuildRemoveCommand>(get_context()));
     register_subcommand(std::make_unique<RebuildBuildCommand>(get_context()));
     register_subcommand(std::make_unique<RebuildSwitchCommand>(get_context()));
 }
