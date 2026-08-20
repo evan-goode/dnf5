@@ -7,6 +7,8 @@
 #include <libdnf5/utils/bgettext/bgettext-lib.h>
 #include <libdnf5/utils/bgettext/bgettext-mark-domain.h>
 #include <libdnf5/utils/fs/file.hpp>
+#include <libpkgmanifest/input/input.hpp>
+#include <libpkgmanifest/input/serializer.hpp>
 
 using namespace libdnf5::cli;
 
@@ -103,17 +105,10 @@ void RebuildInitCommand::run() {
     // Create blank libpkgmanifest infile
     const auto & infile_path = conf_dir / "packages.input.yaml";
     const auto & arch = ctx.get_base().get_vars()->get_value("arch");
-    const auto & infile = fmt::format(
-        R"""(document: rpm-package-input
-version: 0.0.2
-repositories:
-packages:
-    install:
-archs:
-    - {}
-)""",
-        arch);
-    libdnf5::utils::fs::File(infile_path, "w").write(infile);
+    libpkgmanifest::input::Input input;
+    input.get_archs().push_back(arch);
+    libpkgmanifest::input::Serializer serializer;
+    serializer.serialize(input, infile_path.string());
 
     // Create template Containerfile.pre, Containerfile.post
     const auto & containerfile_pre_path = conf_dir / "Containerfile.pre";
