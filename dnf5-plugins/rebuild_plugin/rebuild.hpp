@@ -102,6 +102,22 @@ private:
     libdnf5::OptionBool * soft_reboot_option{nullptr};
 };
 
+class RebuildInstallCommand : public RebuildSubcommand {
+public:
+    explicit RebuildInstallCommand(Context & context) : RebuildSubcommand(context, "install") {}
+    void set_argument_parser() override;
+    void pre_configure() override;
+    void configure() override;
+    void run() override;
+
+private:
+    std::vector<std::string> pkg_specs;
+    libdnf5::OptionString * tag_option{nullptr};
+    libdnf5::OptionBool * switch_option{nullptr};
+    libdnf5::OptionBool * apply_option{nullptr};
+    libdnf5::OptionBool * soft_reboot_option{nullptr};
+};
+
 class RebuildBuildCommand : public RebuildSubcommand {
 public:
     explicit RebuildBuildCommand(Context & context) : RebuildSubcommand(context, "build") {}
