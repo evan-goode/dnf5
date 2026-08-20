@@ -34,12 +34,10 @@ std::string get_latest_digest(const std::string & image);
 void bootc_switch(const std::string & tag, bool apply, bool soft_reboot);
 
 libdnf5::OptionString * create_tag_option(Command & command);
-
 libdnf5::OptionBool * create_apply_option(Command & command);
-
 libdnf5::OptionBool * create_soft_reboot_option(Command & command);
-
 libdnf5::OptionBool * create_switch_option(Command & command);
+
 
 class RebuildCommand : public Command {
 public:
@@ -71,51 +69,50 @@ public:
     void run() override;
 };
 
-class RebuildUpgradeCommand : public RebuildSubcommand {
+
+/// Base class for subcommands that support --switch/--no-switch, --tag, --apply, --soft-reboot.
+class RebuildSwitchableCommand : public RebuildSubcommand {
 public:
-    explicit RebuildUpgradeCommand(Context & context) : RebuildSubcommand(context, "upgrade") {}
+    using RebuildSubcommand::RebuildSubcommand;
     void set_argument_parser() override;
     void pre_configure() override;
     void configure() override;
-    void run() override;
 
-private:
+protected:
+    /// Build the image and switch to it if --switch is set.
+    void build_and_switch_if_needed();
+
     libdnf5::OptionString * tag_option{nullptr};
     libdnf5::OptionBool * switch_option{nullptr};
     libdnf5::OptionBool * apply_option{nullptr};
     libdnf5::OptionBool * soft_reboot_option{nullptr};
 };
 
-class RebuildRebaseCommand : public RebuildSubcommand {
+class RebuildUpgradeCommand : public RebuildSwitchableCommand {
 public:
-    explicit RebuildRebaseCommand(Context & context) : RebuildSubcommand(context, "rebase") {}
+    explicit RebuildUpgradeCommand(Context & context) : RebuildSwitchableCommand(context, "upgrade") {}
     void set_argument_parser() override;
-    void pre_configure() override;
-    void configure() override;
+    void run() override;
+};
+
+class RebuildRebaseCommand : public RebuildSwitchableCommand {
+public:
+    explicit RebuildRebaseCommand(Context & context) : RebuildSwitchableCommand(context, "rebase") {}
+    void set_argument_parser() override;
     void run() override;
 
 private:
     std::string image_spec;
-    libdnf5::OptionString * tag_option{nullptr};
-    libdnf5::OptionBool * switch_option{nullptr};
-    libdnf5::OptionBool * apply_option{nullptr};
-    libdnf5::OptionBool * soft_reboot_option{nullptr};
 };
 
-class RebuildInstallCommand : public RebuildSubcommand {
+class RebuildInstallCommand : public RebuildSwitchableCommand {
 public:
-    explicit RebuildInstallCommand(Context & context) : RebuildSubcommand(context, "install") {}
+    explicit RebuildInstallCommand(Context & context) : RebuildSwitchableCommand(context, "install") {}
     void set_argument_parser() override;
-    void pre_configure() override;
-    void configure() override;
     void run() override;
 
 private:
     std::vector<std::string> pkg_specs;
-    libdnf5::OptionString * tag_option{nullptr};
-    libdnf5::OptionBool * switch_option{nullptr};
-    libdnf5::OptionBool * apply_option{nullptr};
-    libdnf5::OptionBool * soft_reboot_option{nullptr};
 };
 
 class RebuildBuildCommand : public RebuildSubcommand {

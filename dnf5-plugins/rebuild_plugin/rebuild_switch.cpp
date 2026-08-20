@@ -25,8 +25,6 @@ void RebuildSwitchCommand::set_argument_parser() {
 void RebuildSwitchCommand::pre_configure() {
     auto & ctx = get_context();
 
-    ctx.get_base().get_config().get_cachedir_option().set(libdnf5::Option::Priority::RUNTIME, "/var/cache/libdnf5");
-
     ctx.set_create_repos(false);
     ctx.set_load_system_repo(false);
     ctx.set_load_available_repos(Context::LoadAvailableRepos::NONE);

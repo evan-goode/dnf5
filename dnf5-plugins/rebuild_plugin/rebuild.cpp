@@ -219,17 +219,48 @@ libdnf5::OptionBool * create_switch_option(Command & command) {
     return option;
 }
 
+void RebuildSwitchableCommand::set_argument_parser() {
+    RebuildSubcommand::set_argument_parser();
+    switch_option = create_switch_option(*this);
+    tag_option = create_tag_option(*this);
+    apply_option = create_apply_option(*this);
+    soft_reboot_option = create_soft_reboot_option(*this);
+}
+
+void RebuildSwitchableCommand::pre_configure() {
+    auto & ctx = get_context();
+    ctx.set_create_repos(false);
+    ctx.set_load_system_repo(false);
+    ctx.set_load_available_repos(Context::LoadAvailableRepos::NONE);
+}
+
+void RebuildSwitchableCommand::configure() {
+    validate_conf_dir();
+}
+
+void RebuildSwitchableCommand::build_and_switch_if_needed() {
+    if (switch_option->get_value()) {
+        auto & ctx = get_context();
+        const std::filesystem::path conf_dir{config_directory_option->get_value()};
+        const auto & tag = build(ctx, conf_dir, tag_option->get_value());
+        bootc_switch(tag, apply_option->get_value(), soft_reboot_option->get_value());
+    }
+}
+
 void RebuildSubcommand::validate_conf_dir() {
     const std::filesystem::path conf_dir{config_directory_option->get_value()};
     if (!std::filesystem::exists(conf_dir)) {
-        throw libdnf5::cli::CommandExitError(1, M_("Path {} does not exist."), conf_dir.string());
+        throw libdnf5::cli::CommandExitError(
+            1, M_("Path {} does not exist. Consider running `dnf5 rebuild init` first."), conf_dir.string());
     }
     if (!std::filesystem::is_directory(conf_dir)) {
         throw libdnf5::cli::CommandExitError(1, M_("Path {} is not a directory."), conf_dir.string());
     }
     if (std::filesystem::is_empty(conf_dir)) {
         throw libdnf5::cli::CommandExitError(
-            1, M_("Configuration directory {} exists but is empty."), conf_dir.string());
+            1,
+            M_("Configuration directory {} exists but is empty. Consider running `dnf5 rebuild init` first."),
+            conf_dir.string());
     }
 }
 

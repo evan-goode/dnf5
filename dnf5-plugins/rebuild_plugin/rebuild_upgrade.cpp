@@ -13,24 +13,8 @@ using namespace libdnf5::cli;
 namespace dnf5 {
 
 void RebuildUpgradeCommand::set_argument_parser() {
-    RebuildSubcommand::set_argument_parser();
+    RebuildSwitchableCommand::set_argument_parser();
     get_argument_parser_command()->set_description(_("Upgrade the base image to the latest digest from the registry"));
-    switch_option = create_switch_option(*this);
-    tag_option = create_tag_option(*this);
-    apply_option = create_apply_option(*this);
-    soft_reboot_option = create_soft_reboot_option(*this);
-}
-
-void RebuildUpgradeCommand::pre_configure() {
-    auto & ctx = get_context();
-
-    ctx.set_create_repos(false);
-    ctx.set_load_system_repo(false);
-    ctx.set_load_available_repos(Context::LoadAvailableRepos::NONE);
-}
-
-void RebuildUpgradeCommand::configure() {
-    validate_conf_dir();
 }
 
 void RebuildUpgradeCommand::run() {
@@ -51,10 +35,7 @@ void RebuildUpgradeCommand::run() {
         ctx.print_info(libdnf5::utils::sformat(_("Base image updated to {}"), new_base_image));
     }
 
-    if (switch_option->get_value()) {
-        const auto & tag = build(ctx, conf_dir, tag_option->get_value());
-        bootc_switch(tag, apply_option->get_value(), soft_reboot_option->get_value());
-    }
+    build_and_switch_if_needed();
 }
 
 }  // namespace dnf5

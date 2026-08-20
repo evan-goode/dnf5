@@ -17,7 +17,7 @@ using namespace libdnf5::cli;
 namespace dnf5 {
 
 void RebuildInstallCommand::set_argument_parser() {
-    RebuildSubcommand::set_argument_parser();
+    RebuildSwitchableCommand::set_argument_parser();
 
     auto & parser = get_context().get_argument_parser();
     auto & cmd = *get_argument_parser_command();
@@ -35,23 +35,6 @@ void RebuildInstallCommand::set_argument_parser() {
             return true;
         });
     cmd.register_positional_arg(pkgs_arg);
-
-    switch_option = create_switch_option(*this);
-    tag_option = create_tag_option(*this);
-    apply_option = create_apply_option(*this);
-    soft_reboot_option = create_soft_reboot_option(*this);
-}
-
-void RebuildInstallCommand::pre_configure() {
-    auto & ctx = get_context();
-
-    ctx.set_create_repos(false);
-    ctx.set_load_system_repo(false);
-    ctx.set_load_available_repos(Context::LoadAvailableRepos::NONE);
-}
-
-void RebuildInstallCommand::configure() {
-    validate_conf_dir();
 }
 
 void RebuildInstallCommand::run() {
@@ -75,10 +58,7 @@ void RebuildInstallCommand::run() {
     libpkgmanifest::input::Serializer serializer;
     serializer.serialize(input, infile_path.string());
 
-    if (switch_option->get_value()) {
-        const auto & tag = build(ctx, conf_dir, tag_option->get_value());
-        bootc_switch(tag, apply_option->get_value(), soft_reboot_option->get_value());
-    }
+    build_and_switch_if_needed();
 }
 
 }  // namespace dnf5
