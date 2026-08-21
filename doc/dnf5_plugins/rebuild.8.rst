@@ -160,8 +160,10 @@ The following options are shared by the ``install``, ``remove``, ``upgrade``,
 ``--apply``
     Apply the changes immediately and reboot (calls ``bootc switch --apply``).
 
-``--soft-reboot``
+``--soft-reboot auto|required``
     Perform a soft reboot after switching (calls ``bootc switch --soft-reboot``).
+    ``auto`` uses soft reboot if possible, otherwise falls back to a regular reboot.
+    ``required`` fails if soft reboot is not available.
 
 
 --------
@@ -195,7 +197,7 @@ Examples
 ``dnf5 rebuild switch --apply``
     Build and switch to the image, and reboot to apply changes immediately.
 
-``dnf5 rebuild switch --apply --soft-reboot``
+``dnf5 rebuild switch --apply --soft-reboot auto``
     Build, switch, and apply via soft reboot.
 
 

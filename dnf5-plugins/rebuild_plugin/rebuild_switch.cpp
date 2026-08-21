@@ -34,13 +34,13 @@ void RebuildSwitchCommand::configure() {
     validate_conf_dir();
 }
 
-void bootc_switch(const std::string & tag, bool apply, bool soft_reboot) {
+void bootc_switch(const std::string & tag, bool apply, const std::string & soft_reboot) {
     std::vector<std::string> bootc_args{"bootc", "switch", "--transport", "containers-storage"};
     if (apply) {
         bootc_args.emplace_back("--apply");
     }
-    if (soft_reboot) {
-        bootc_args.emplace_back("--soft-reboot");
+    if (!soft_reboot.empty()) {
+        bootc_args.emplace_back(fmt::format("--soft-reboot={}", soft_reboot));
     }
     bootc_args.push_back(tag);
 

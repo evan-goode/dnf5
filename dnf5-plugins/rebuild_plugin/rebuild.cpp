@@ -185,14 +185,15 @@ libdnf5::OptionBool * create_apply_option(Command & command) {
     return option;
 }
 
-libdnf5::OptionBool * create_soft_reboot_option(Command & command) {
+libdnf5::OptionEnum * create_soft_reboot_option(Command & command) {
     auto & parser = command.get_context().get_argument_parser();
-    auto * option =
-        dynamic_cast<libdnf5::OptionBool *>(parser.add_init_value(std::make_unique<libdnf5::OptionBool>(false)));
+    auto * option = dynamic_cast<libdnf5::OptionEnum *>(parser.add_init_value(
+        std::make_unique<libdnf5::OptionEnum>("", std::vector<std::string>{"", "auto", "required"})));
     auto * arg = parser.add_new_named_arg("soft-reboot");
     arg->set_long_name("soft-reboot");
-    arg->set_description(_("Perform a soft reboot after switching"));
-    arg->set_const_value("true");
+    arg->set_description(_("Perform a soft reboot after switching (auto, required)"));
+    arg->set_has_value(true);
+    arg->set_arg_value_help("auto|required");
     arg->link_value(option);
     command.get_argument_parser_command()->register_named_arg(arg);
     return option;

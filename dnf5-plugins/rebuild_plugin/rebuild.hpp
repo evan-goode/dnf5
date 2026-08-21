@@ -7,6 +7,7 @@
 #include <dnf5/context.hpp>
 #include <json.h>
 #include <libdnf5/conf/option_bool.hpp>
+#include <libdnf5/conf/option_enum.hpp>
 
 const std::string DEFAULT_REBUILD_CONFIG_DIRECTORY{"/etc/dnf/dnf5-plugins/rebuild.d"};
 const std::string DEFAULT_REBUILD_CACHEDIR{"/var/cache/dnf-rebuild"};
@@ -31,11 +32,11 @@ std::string build(Context & ctx, const std::filesystem::path & conf_dir, const s
 /// Query the registry for the latest digest of an image via skopeo.
 std::string get_latest_digest(const std::string & image);
 
-void bootc_switch(const std::string & tag, bool apply, bool soft_reboot);
+void bootc_switch(const std::string & tag, bool apply, const std::string & soft_reboot);
 
 libdnf5::OptionString * create_tag_option(Command & command);
 libdnf5::OptionBool * create_apply_option(Command & command);
-libdnf5::OptionBool * create_soft_reboot_option(Command & command);
+libdnf5::OptionEnum * create_soft_reboot_option(Command & command);
 libdnf5::OptionBool * create_switch_option(Command & command);
 
 
@@ -85,7 +86,7 @@ protected:
     libdnf5::OptionString * tag_option{nullptr};
     libdnf5::OptionBool * switch_option{nullptr};
     libdnf5::OptionBool * apply_option{nullptr};
-    libdnf5::OptionBool * soft_reboot_option{nullptr};
+    libdnf5::OptionEnum * soft_reboot_option{nullptr};
 };
 
 class RebuildUpgradeCommand : public RebuildSwitchableCommand {
@@ -148,7 +149,7 @@ public:
 private:
     libdnf5::OptionString * tag_option{nullptr};
     libdnf5::OptionBool * apply_option{nullptr};
-    libdnf5::OptionBool * soft_reboot_option{nullptr};
+    libdnf5::OptionEnum * soft_reboot_option{nullptr};
 };
 
 }  // namespace dnf5
