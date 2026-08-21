@@ -3,6 +3,7 @@
 
 #include "rebuild.hpp"
 
+#include <libdnf5-cli/utils/userconfirm.hpp>
 #include <libdnf5/rpm/package_query.hpp>
 #include <libdnf5/utils/bgettext/bgettext-lib.h>
 #include <libdnf5/utils/bgettext/bgettext-mark-domain.h>
@@ -95,12 +96,22 @@ void RebuildInitCommand::run() {
             throw libdnf5::cli::CommandExitError(1, M_("Path {} exists but is not a directory."), conf_dir.string());
         }
     }
+
+    const auto & [image, digest] = get_deployed_image();
+    const auto & image_identifier = fmt::format("{}@{}", image, digest);
+    ctx.print_info(libdnf5::utils::sformat(
+        _("A configuration directory for the local layer will be created at {} using base image {}."),
+        conf_dir.string(),
+        image_identifier));
+    if (!libdnf5::cli::utils::userconfirm::userconfirm(ctx.get_base().get_config())) {
+        throw libdnf5::cli::AbortedByUserError();
+    }
+
     std::filesystem::create_directories(conf_dir);
 
     // Create base
-    const auto & [image, digest] = get_deployed_image();
     const auto & base_path = conf_dir / "base";
-    libdnf5::utils::fs::File(base_path, "w").write(fmt::format("{}@{}", image, digest));
+    libdnf5::utils::fs::File(base_path, "w").write(image_identifier);
 
     // Create blank libpkgmanifest infile
     const auto & infile_path = conf_dir / "packages.input.yaml";
