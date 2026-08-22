@@ -417,9 +417,7 @@ void ManifestSubcommand::add_pkgs_to_manifest(
         }
         manifest_pkg.attach(manifest.get_repositories());
 
-        if (!manifest_pkg.get_repository().get_baseurl().empty()) {
-            manifest_pkg.set_location(get_pkg_location(base, dnf_pkg));
-        }
+        manifest_pkg.set_location(get_pkg_location(base, dnf_pkg));
 
         const auto & dnf_checksum = is_from_system_repo ? dnf_pkg.get_hdr_checksum() : dnf_pkg.get_checksum();
 
