@@ -159,7 +159,20 @@ RUN SOURCE_DATE_EPOCH=0 DNF5_FORCE_INTERACTIVE=1 dnf5 manifest install \
             1, M_("Failed to tag image {} as {}: {}"), post_image_id, tag, byte_vector_to_string(*tag_result.stderr));
     }
 
-    return tag;
+    // Resolve the digest of the tagged image so that bootc switch sees a
+    // unique image specification even when the tag name is unchanged.
+    const auto & inspect_result =
+        dnf5::rebuild::subprocess::run("podman", {"podman", "inspect", "--format", "{{.Digest}}", tag});
+    if (inspect_result.returncode != 0) {
+        throw libdnf5::cli::CommandExitError(
+            1, M_("Failed to inspect image {}: {}"), tag, byte_vector_to_string(*inspect_result.stderr));
+    }
+    const auto & digest = trim(byte_vector_to_string(*inspect_result.stdout));
+    if (digest.empty()) {
+        throw libdnf5::cli::CommandExitError(1, M_("Could not determine digest for image {}"), tag);
+    }
+
+    return fmt::format("{}@{}", tag, digest);
 }
 
 void RebuildBuildCommand::set_argument_parser() {
